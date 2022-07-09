@@ -1,0 +1,45 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/Memory.hdl
+
+/**
+ * The complete address space of the Hack computer's memory,
+ * including RAM and memory-mapped I/O. 
+ * The chip facilitates read and write operations, as follows:
+ *     Read:  out(t) = Memory[address(t)](t)
+ *     Write: if load(t-1) then Memory[address(t-1)](t) = in(t-1)
+ * In words: the chip always outputs the value stored at the memory 
+ * location specified by address. If load==1, the in value is loaded 
+ * into the memory location specified by address. This value becomes 
+ * available through the out output from the next time step onward.
+ * Address space rules:
+ * Only the upper 16K+8K+1 words of the Memory chip are used. 
+ * Access to address>0x6000 is invalid. Access to any address in 
+ * the range 0x4000-0x5FFF results in accessing the screen memory 
+ * map. Access to address 0x6000 results in accessing the keyboard 
+ * memory map. The behavior in these addresses is described in the 
+ * Screen and Keyboard chip specifications given in the book.
+ */
+
+CHIP Memory {
+    IN in[16], load, address[15];
+    OUT out[16];
+
+    PARTS:
+    /**
+     * address的 14 13 12位
+     * 000,001,010,011都指向的是Main memory
+     * 100 指向第一个4K，101指向第二个4K, 都是SCREEN
+     * 110 指向KBD，11...0位应该都是0，此时地址为0x6000, 再大就无效了
+     */
+    DMux8Way(in=load, sel=address[12..14], a=load0, b=load1, c=load2, d=load3, e=load4, f=load5, g=load6, h=load7);
+    Or(a=load0, b=load1, out=load01);
+    Or(a=load01, b=load2, out=load012);
+    Or(a=load012, b=load3, out=loadMain);
+    Or(a=load4, b=load5, out=loadScreen);
+    RAM16K(in=in, load=loadMain, address=address[0..13], out=outMain);
+    Screen(in=in, load=loadScreen, address=address[0..12], out=outScreen);
+    Keyboard(out=outKBD);
+    Mux8Way16(a=outMain, b=outMain, c=outMain, d=outMain, e=outScreen, f=outScreen, g=outKBD, h=false, sel=address[12..14], out=out);
+}
