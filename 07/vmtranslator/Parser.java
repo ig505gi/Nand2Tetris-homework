@@ -7,13 +7,15 @@ import java.util.*;
 public class Parser {
   private Scanner scanner;
   private String[] currentCommand; // split by space
+  public String currentCommandLine;
   private String nextCommandLine;
-  public Parser(FileInputStream is) {
-    scanner = new Scanner(is);
+  public Parser(File file) throws FileNotFoundException {
+    scanner = new Scanner(file);
   }
 
   private boolean isCommentOrBlank(String line) {
-    return line.startsWith("/") || line.startsWith("*") || line == "";
+    String trimedLine = line.replaceAll(" ", "");
+    return trimedLine.startsWith("/") || trimedLine.startsWith("*") || trimedLine.equals("");
   }
 
   public Boolean hasMoreCommands() {
@@ -24,11 +26,13 @@ public class Parser {
         return true;
       }
     }
+    scanner.close();
     return false;
   }
 
   public void advance() {
     currentCommand = nextCommandLine.split(" ");
+    currentCommandLine = nextCommandLine;
   }
 
   public Command commandType() {

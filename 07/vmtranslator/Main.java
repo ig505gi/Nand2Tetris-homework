@@ -14,14 +14,25 @@ public class Main {
       return;
     }
     String fileName = args[0];
-    Parser parser = new Parser(new FileInputStream(new File(fileName)));
+    Parser parser = new Parser(new File(fileName));
     String outFileName = fileName.substring(0, fileName.length() - 2) + "asm";
-    CodeWriter codeWriter = new CodeWriter(new FileOutputStream(new File(outFileName)));
+    CodeWriter codeWriter = new CodeWriter(new File(outFileName));
     while (parser.hasMoreCommands()) {
       parser.advance();
-      System.out.println(parser.arg1() + "  " + parser.arg2());
+      codeWriter.writeComment(parser.currentCommandLine);
+      switch (parser.commandType()) {
+        case C_ARITHMETIC:
+          codeWriter.writeArithmetic(parser.arg1());
+          break;
+        case C_PUSH:
+        case C_POP:
+          codeWriter.writePushPop(parser.commandType(), parser.arg1(), parser.arg2());
+          break;
+        default:
+          break;
+      }
     }
-
+    codeWriter.close();
     System.out.println(outFileName);
   }
 }
