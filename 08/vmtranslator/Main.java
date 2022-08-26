@@ -17,6 +17,7 @@ public class Main {
     Parser parser = new Parser(new File(fileName));
     String outFileName = fileName.substring(0, fileName.length() - 2) + "asm";
     CodeWriter codeWriter = new CodeWriter(new File(outFileName));
+    codeWriter.writeInit();
     while (parser.hasMoreCommands()) {
       parser.advance();
       codeWriter.writeComment(parser.currentCommandLine);
@@ -28,8 +29,26 @@ public class Main {
         case C_POP:
           codeWriter.writePushPop(parser.commandType(), parser.arg1(), parser.arg2());
           break;
-        default:
+        case C_GOTO:
+          codeWriter.writeGoto(parser.arg1());
           break;
+        case C_IF:
+          codeWriter.writeIf(parser.arg1());
+          break;
+        case C_LABEL:
+          codeWriter.writeLabel(parser.arg1());
+          break;
+        case C_FUNCTION:
+          codeWriter.writeFunction(parser.arg1(), parser.arg2());
+          break;
+        case C_CALL:
+          codeWriter.writeCall(parser.arg1(), parser.arg2());
+          break;
+        case C_RETURN:
+          codeWriter.writeReturn();
+          break;
+        default:
+          throw new Exception("no this command");
       }
     }
     codeWriter.close();

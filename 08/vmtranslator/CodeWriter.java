@@ -7,14 +7,61 @@ public class CodeWriter {
   private BufferedWriter writer;
   private String FILE_NAME;
   private int TRUE_LABEL_COUNT = 0;
+  // 1.在每个function中的label需要加前缀变成：fileName.functionName$label
+  // 2.vm文件一般由Jack文件得到，得到的functionName已经是fileName.functionName了
+  // 3.对于特殊的vm文件，没有function的，那么则直接调用label。
+  // 4.由于不会出现function和return之间再次出现function的情况:
+  // 因此当调用writeFunction时，记录当前的functionName;当调用writeReturn时，删除名字信息
+  private String curFunctionName = "";
 
   public CodeWriter(File file) throws IOException {
     FILE_NAME = file.getName().substring(0, file.getName().length() - 4);
     writer = new BufferedWriter(new FileWriter(file));
   }
 
+  public void setFileName(String fileName) {
+    // do nothing
+    // 在构造函数里已经做了
+  }
+
+  public void writeInit() throws IOException {
+    writer.write("sp=256\ncall Sys.init");
+  }
+
   public void writeComment(String command) throws IOException {
     writer.write("// " + command + "\n");
+  }
+
+  public void writeLabel(String label) throws IOException {
+    writer.write("(" + curFunctionName + "$" + label + ")\n");
+  }
+
+  public void writeGoto(String label) throws IOException {
+    writer.write(
+      "@" + curFunctionName + "$" + label + "\n" +
+      "0;JMP\n"
+    );
+  }
+
+  public void writeIf(String label) throws IOException {
+    writer.write(
+      // 如果是true，全为1，那么为负数，应该用JLT
+      popStackToD() +
+      "@" + curFunctionName + "$" + label + "\n" +
+      "D;JLT\n"
+    );
+  }
+
+  public void writeFunction(String functionName, int numVars) throws IOException {
+    
+  }
+
+  public void writeCall(String functionName, int numVars) throws IOException {
+    
+  }
+
+  public void writeReturn() throws IOException {
+
   }
 
   public void writeArithmetic(String command) throws Exception {

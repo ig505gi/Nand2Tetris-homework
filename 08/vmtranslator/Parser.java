@@ -35,7 +35,7 @@ public class Parser {
     currentCommandLine = nextCommandLine;
   }
 
-  public Command commandType() {
+  public Command commandType() throws Exception {
     if (currentCommand[0].equals("pop")) {
       return Command.C_POP;
     }
@@ -46,31 +46,57 @@ public class Parser {
     if (Arrays.asList(arithmeticTypes).contains(currentCommand[0])) {
       return Command.C_ARITHMETIC;
     }
-    return Command.C_RETURN;
+    if (currentCommand[0].equals("label")) {
+      return Command.C_LABEL;
+    }
+    if (currentCommand[0].equals("goto")) {
+      return Command.C_GOTO;
+    }
+    if (currentCommand[0].equals("if-goto")) {
+      return Command.C_IF;
+    }
+    if (currentCommand[0].equals("function")) {
+      return Command.C_FUNCTION;
+    }
+    if (currentCommand[0].equals("call")) {
+      return Command.C_CALL;
+    }
+    if (currentCommand[0].equals("function")) {
+      return Command.C_RETURN;
+    }
+    throw new Exception("incorrect syntax!");
   }
 
-  public String arg1() {
+  public String arg1() throws Exception {
     switch (commandType()) {
       case C_ARITHMETIC:
         return currentCommand[0];
       case C_PUSH:
       case C_POP:
+      case C_FUNCTION:
+      case C_CALL:
+      case C_GOTO:
+      case C_IF:
+      case C_LABEL:
         return currentCommand[1];
       default:
         break;
     }
-    return "";
+    // C_RETURN shouldn't call
+    throw new Exception("incorrect syntax!");
   }
 
-  public int arg2() {
+  public int arg2() throws NumberFormatException, Exception {
     switch (commandType()) {
       case C_PUSH:
       case C_POP:
+      case C_FUNCTION:
+      case C_CALL:
         return Integer.parseInt(currentCommand[2]);
       default:
         break;
     }
-    return 0;
+    throw new Exception("incorrect syntax!");
   }
 }
 
